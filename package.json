@@ -1,0 +1,14 @@
+{
+  "name": "git-image-par-image",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "bun src/build.ts",
+    "check": "tsgo --noEmit",
+    "preview": "bun src/preview.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.4.2",
+    "@typescript/native-preview": "^7.0.0-dev.20260707.2"
+  }
+}

@@ -1,0 +1,244 @@
+<title>Git, image par image</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400;600&family=Atkinson+Hyperlegible+Next:wght@400;700&display=swap">
+<style>
+  :root {
+    --table: #edf1f3;
+    --paper: #ffffff;
+    --ink: #22282b;
+    --ink-soft: #5b666c;
+    --film: #2a2320;
+    --film-text: #f3efe9;
+    --sprocket: #edf1f3;
+    --edge: #f0c24b;
+    --pencil: #c8223a;
+    --marker: #ffe58a;
+    --tape-main: #f2e3a0;
+    --tape-a: #a9cbea;
+    --tape-b: #b3ddb9;
+    --tape-ink: #22282b;
+    --rule: color-mix(in oklab, var(--ink) 14%, transparent);
+
+    --sans: "Atkinson Hyperlegible Next", "Atkinson Hyperlegible", system-ui, sans-serif;
+    --mono: "Atkinson Hyperlegible Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+    --t-xs: 0.75rem;
+    --t-s: 0.875rem;
+    --t-m: 1.0625rem;
+    --t-l: 1.375rem;
+    --t-xl: 1.75rem;
+
+    --frame-w: 168px;
+    --frame-h: 116px;
+    --glide: 350ms;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --table: #15181a;
+      --paper: #1e2225;
+      --ink: #e6e9ea;
+      --ink-soft: #9aa5aa;
+      --film: #0c0b0a;
+      --sprocket: #4a4540;
+      --edge: #e0b64a;
+      --pencil: #ff5c6e;
+      --marker: #5c4d12;
+      --tape-main: #cdbe7e;
+      --tape-a: #7fa6c8;
+      --tape-b: #86b08e;
+      --tape-ink: #15181a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --table: #15181a;
+    --paper: #1e2225;
+    --ink: #e6e9ea;
+    --ink-soft: #9aa5aa;
+    --film: #0c0b0a;
+    --sprocket: #4a4540;
+    --edge: #e0b64a;
+    --pencil: #ff5c6e;
+    --marker: #5c4d12;
+    --tape-main: #cdbe7e;
+    --tape-a: #7fa6c8;
+    --tape-b: #86b08e;
+    --tape-ink: #15181a;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--table);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: var(--t-m);
+    line-height: 1.5;
+    padding-inline: 16px;
+    padding-block: 20px 40px;
+  }
+  .page { max-width: 1240px; margin-inline: auto; display: grid; gap: 20px; }
+  button { font: inherit; color: inherit; }
+  button:focus-visible { outline: 2px solid var(--pencil); outline-offset: 2px; }
+
+  header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 12px 24px; }
+  h1 { font-size: var(--t-xl); line-height: 1.15; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+  #chapters { list-style: none; display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; }
+  #chapters button {
+    font-size: var(--t-s); background: transparent; border: 1px solid var(--rule); border-radius: 999px;
+    padding: 4px 14px; cursor: pointer;
+  }
+  #chapters button[aria-current="step"] { background: var(--ink); color: var(--table); border-color: var(--ink); }
+
+  /* The light table: the history */
+  #table { overflow-x: auto; padding-block: 4px; }
+  #sheet { position: relative; min-width: 100%; min-height: 220px; }
+  #marks { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+  #empty { position: absolute; left: 16px; top: 64px; margin: 0; color: var(--ink-soft); }
+  .link { fill: none; stroke: var(--ink-soft); stroke-width: 2; }
+  .link.ghost { stroke-dasharray: 4 5; opacity: 0.5; }
+  .link.fresh { animation: appear 200ms calc(var(--glide) - 50ms) both; }
+  .pencil {
+    fill: none; stroke: var(--pencil); stroke-width: 3; stroke-linecap: round;
+    stroke-dasharray: 1; animation: draw 550ms 150ms ease-out both;
+  }
+
+  .frame {
+    position: absolute; left: 0; top: 0; width: var(--frame-w);
+    display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px;
+    padding: 0; border: 0; background: none; text-align: left; cursor: pointer;
+    transition: transform var(--glide) ease, opacity var(--glide) ease;
+  }
+  .frame.develop { transition: none; }
+  .frame:focus-visible { outline-offset: 4px; }
+  .rebate {
+    position: relative; display: block; height: var(--frame-h); background: var(--film);
+    padding: 12px 8px 22px; border: 1px solid color-mix(in oklab, var(--ink) 20%, transparent);
+  }
+  .rebate::before, .rebate::after {
+    content: ""; position: absolute; left: 6px; right: 6px; height: 5px;
+    background: repeating-linear-gradient(90deg, var(--sprocket) 0 7px, transparent 7px 15px);
+    border-radius: 1px; opacity: 0.85;
+  }
+  .rebate::before { top: 4px; }
+  .rebate::after { bottom: 3px; }
+  .frame:hover .rebate { outline: 2px solid color-mix(in oklab, var(--edge) 55%, transparent); outline-offset: 2px; }
+  .frame.inspected .rebate { outline: 3px solid var(--edge); outline-offset: 2px; }
+  .shot { display: block; width: 100%; height: 100%; background: #fff; overflow: hidden; }
+  .frame.develop .shot { animation: develop 700ms ease-out both; }
+  .site { display: block; width: 600px; height: 320px; transform: scale(0.25); transform-origin: 0 0; }
+  .hash {
+    position: absolute; right: 10px; bottom: 9px; line-height: 12px;
+    font-family: var(--mono); font-size: 10px; color: var(--edge); letter-spacing: 0.06em;
+  }
+  .msg { display: block; font-size: var(--t-xs); color: var(--ink-soft); line-height: 1.3; padding-inline: 2px 28px; }
+  .frame.ghost { opacity: 0.38; }
+  .frame.ghost .rebate, .frame.pending .rebate { background: transparent; border: 1.5px dashed var(--ink-soft); }
+  .frame.ghost .rebate::before, .frame.ghost .rebate::after,
+  .frame.pending .rebate::before, .frame.pending .rebate::after { display: none; }
+  .frame.ghost .hash { color: var(--ink-soft); text-decoration: line-through; }
+  .frame.pending .shot { opacity: 0.8; }
+
+  .tapes { position: absolute; bottom: calc(100% - 6px); left: 10px; z-index: 1; display: flex; flex-direction: column; gap: 2px; }
+  .tape {
+    display: block; width: max-content; padding: 1px 10px 2px; transform: rotate(-2.5deg);
+    font-family: var(--mono); font-size: var(--t-s); font-weight: 600; color: var(--tape-ink);
+    box-shadow: 0 1px 0 color-mix(in oklab, var(--ink) 18%, transparent);
+  }
+  .tape.main { background: var(--tape-main); }
+  .tape.a { background: var(--tape-a); }
+  .tape.b { background: var(--tape-b); }
+  .tape .head { font-weight: 400; }
+
+  /* Step + files */
+  .work { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 20px; align-items: start; }
+  @media (max-width: 860px) { .work { grid-template-columns: minmax(0, 1fr); } }
+
+  .step { display: grid; gap: 14px; max-width: 34rem; }
+  #where { font-size: var(--t-s); color: var(--ink-soft); margin: 0; font-variant-numeric: tabular-nums; }
+  #term {
+    font-family: var(--mono); font-size: var(--t-m); background: var(--film); color: var(--film-text);
+    padding: 12px 16px; margin: 0; overflow-x: auto; white-space: pre; line-height: 1.6;
+  }
+  #term .prompt { color: var(--edge); user-select: none; }
+  #term .output, #term .note { color: color-mix(in oklab, var(--film-text) 65%, transparent); }
+  #step-title { font-size: var(--t-l); line-height: 1.25; margin: 0; text-wrap: balance; }
+  #step-text { margin: 0; max-width: 62ch; }
+  .step code { font-family: var(--mono); font-size: 0.94em; }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .btn {
+    font-size: var(--t-s); padding: 8px 16px; cursor: pointer;
+    border: 1px solid var(--ink); background: transparent; border-radius: 4px;
+  }
+  .btn:disabled { opacity: 0.4; cursor: default; }
+  .btn.primary { background: var(--ink); color: var(--table); }
+  .btn.alt { border-style: dashed; border-color: var(--ink-soft); color: var(--ink-soft); }
+  .btn.alt.on { border-style: solid; border-color: var(--pencil); color: var(--pencil); }
+
+  .files { background: var(--paper); border: 1px solid var(--rule); display: grid; min-width: 0; }
+  .files-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 16px; padding: 12px 16px 0; font-size: var(--t-s); color: var(--ink-soft); }
+  .files-head code { font-family: var(--mono); color: var(--ink); }
+  #tabs { display: flex; flex-wrap: wrap; gap: 0 4px; padding: 8px 12px 0; border-bottom: 1px solid var(--rule); min-height: 9px; }
+  #tabs button {
+    font-family: var(--mono); font-size: var(--t-s); color: var(--ink-soft); background: transparent;
+    border: 0; border-bottom: 2px solid transparent; padding: 6px 8px; cursor: pointer;
+  }
+  #tabs button[aria-pressed="true"] { color: var(--ink); border-bottom-color: var(--ink); }
+  #tabs .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--pencil); margin-left: 6px; vertical-align: middle; }
+  .code { margin: 0; padding: 12px 0; overflow-x: auto; font-family: var(--mono); font-size: var(--t-s); line-height: 1.6; }
+  .line { display: block; padding-inline: 16px; white-space: pre; }
+  .ln { display: inline-block; width: 2.4em; color: var(--ink-soft); opacity: 0.6; user-select: none; }
+  .line.add { background: var(--marker); }
+  .line.del { color: var(--ink-soft); text-decoration: line-through; text-decoration-color: var(--pencil); }
+  .preview { display: block; height: 360px; overflow: auto; }
+  .files-empty { margin: 0; padding: 16px; color: var(--ink-soft); }
+  .legend { font-size: var(--t-xs); color: var(--ink-soft); padding: 0 16px 12px; margin: 0; }
+
+  @keyframes develop { from { filter: brightness(0.1) contrast(0.5); } to { filter: none; } }
+  @keyframes draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+  @keyframes appear { from { opacity: 0; } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .frame { transition: none; }
+    .frame.develop .shot, .pencil, .link.fresh { animation: none; }
+  }
+</style>
+
+<div class="page">
+  <header>
+    <h1>Git, image par image</h1>
+    <nav aria-label="Chapitres"><ol id="chapters"></ol></nav>
+  </header>
+
+  <section id="table" aria-label="Historique du projet">
+    <div id="sheet">
+      <svg id="marks" aria-hidden="true"></svg>
+      <p id="empty">La table est vide : aucun commit pour l'instant.</p>
+    </div>
+  </section>
+
+  <div class="work">
+    <section class="step" aria-live="polite">
+      <p id="where"></p>
+      <pre id="term"></pre>
+      <h2 id="step-title"></h2>
+      <p id="step-text"></p>
+      <div class="controls">
+        <button type="button" id="prev" class="btn">Précédent</button>
+        <button type="button" id="next" class="btn primary">Suivant</button>
+        <button type="button" id="alt" class="btn alt" hidden></button>
+      </div>
+    </section>
+
+    <section class="files" aria-label="Fichiers du projet">
+      <div class="files-head">
+        <span id="files-where"></span>
+        <span id="files-hint"></span>
+      </div>
+      <div id="tabs" role="group" aria-label="Fichier affiché"></div>
+      <div id="file-view"></div>
+      <p class="legend">Cliquez une image de l'historique pour voir le projet à ce moment-là. Les flèches du clavier changent d'étape.</p>
+    </section>
+  </div>
+</div>
+
+<script type="module" src="app.js"></script>
