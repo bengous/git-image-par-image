@@ -19,9 +19,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
+      - uses: ./.github/actions/mise
         with:
-          bun-version: 1.4.3
+          tools: bun,node
+          github-token: ${{ secrets.MISE_GITHUB_TOKEN }}
       - run: bun install --frozen-lockfile
       - run: bun run check
       - run: bun test
