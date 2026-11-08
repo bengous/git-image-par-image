@@ -19,7 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/mise
+      # The $/ form zizmor asks for fails actionlint 1.7.12; this step runs right after the checkout.
+      - uses: ./.github/actions/mise # zizmor: ignore[self-repository]
         with:
           tools: bun,node
           github-token: ${{ secrets.MISE_GITHUB_TOKEN }}
